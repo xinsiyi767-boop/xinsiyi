@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>宝贝回家网 - 帮助失踪儿童回家</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E63946', // 温暖红色作为主色调，代表希望和关怀
+                        secondary: '#457B9D',
+                        accent: '#F1FAEE',
+                        neutral: '#1D3557',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .bg-gradient-animated {
+                background-size: 400% 400%;
+                animation: gradientShift 15s ease infinite;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .backdrop-blur-xl {
+                backdrop-filter: blur(24px);
+            }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(230, 57, 70, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(230, 57, 70, 0.8); }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* 主内容区入场动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+         /* 音乐播放器样式 */
+        .music-player {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        
+        .music-player.minimized {
+            width: auto;
+            padding: 8px 15px;
+        }
+        
+        .music-cover {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        .music-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .music-cover.playing::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: spin 20s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .music-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        
+        .music-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .music-artist {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+        
+        .music-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+        }
+        
+        .play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            font-size: 16px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            margin: 8px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #E63946;
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+        
+        .music-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .minimize-btn {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .minimize-btn:hover {
+            color: white;
+        }
+        
+        .player-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            width: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .music-player.minimized .player-content,
+        .music-player.minimized .music-info {
+            display: none;
+        }
+        
+
+        /* 寻人页面样式 */
+        .info-list p {
+            background: #ffe3d3;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 12px;
+            font-size: 1.08em;
+            box-shadow: 0 1px 6px rgba(239, 135, 87, 0.6);
+            text-shadow: 0 1px 2px #fff, 0 2px 8px rgba(239, 135, 87, 0.6);
+        }
+        .info-list mark {
+            background: #f4d571;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+        .call-back {
+            font-size: 1.3em;
+            color: #e7564e;
+            text-align: center;
+            margin-top: 18px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px #fff, 0 2px 8px rgba(239, 135, 87, 0.6);
+        }
+        .contact {
+            margin: 18px 0 0 0;
+            padding: 12px 18px;
+            background: #f4d571;
+            border-radius: 8px;
+            color: #ec5a21;
+            font-size: 1.08em;
+            box-shadow: 0 1px 6px rgba(239, 135, 87, 0.6);
+            text-shadow: 0 1px 2px #fff, 0 2px 8px rgba(239, 135, 87, 0.6);
+        }
+
+        /* 音乐播放器样式 */
+        .custom-audio {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            background: #dc7a7a;
+            border-radius: 30px;
+            width: 320px;
+            margin: 30px auto 0;
+            box-shadow: 0 2px 12px rgba(236, 90, 33, 0.6);
+        }
+        .play-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #2c3e50;
+            color: #f6b161;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .progress-container {
+            flex: 1;
+            height: 6px;
+            background: #ba3131;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #f4d571;
+            border-radius: 3px;
+        }
+        .volume-btn {
+            border: none;
+            background: transparent;
+            font-size: 18px;
+            cursor: pointer;
+            color: #db944d;
+        }
+
+        /* 跳转与分享按钮样式 */
+        .jump-btn, .share-btn {
+            display: inline-block;
+            margin: 24px 12px 0 0;
+            padding: 10px 28px;
+            font-size: 1em;
+            background: linear-gradient(90deg, #f4d571 60%, #ec5a21 100%);
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(239, 135, 87, 0.6), 0 2px 12px rgba(236, 90, 33, 0.6), 0 0 8px rgba(244, 213, 113, 0.6);
+            transition: background 0.2s, color 0.2s;
+            font-weight: bold;
+            animation: btn-jump 1.2s infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes btn-jump {
+            0% {transform: scale(1);}
+            50% {transform: scale(1.08);}
+            100% {transform: scale(1);}
+        }
+        .jump-btn:hover, .share-btn:hover {
+            background: linear-gradient(90deg, #ffe3d3 60%, #f4d571 100%);
+            color: #ec5a21;
+        }
+        .share-group {
+            margin: 24px 0 0 0;
+            text-align: center;
+        }
+        .share-btn {
+            margin: 0 8px;
+            padding: 8px 18px;
+            font-size: 1em;
+            border-radius: 18px;
+        }
+
+        /* quote弹窗样式 */
+        #quote-modal {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(236, 90, 33, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s;
+        }
+        .quote-content {
+            background: linear-gradient(120deg, #fffbe6 60%, #ffe3d3 100%);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(236, 90, 33, 0.6);
+            padding: 32px 38px;
+            text-align: center;
+            position: relative;
+            animation: popUp 0.5s;
+        }
+        @keyframes popUp {
+            0% {transform: scale(0.7);}
+            80% {transform: scale(1.08);}
+            100% {transform: scale(1);}
+        }
+        #quote-text {
+            font-size: 1.4em;
+            color: #e7564e;
+            font-family: "Microsoft YaHei", cursive, sans-serif;
+            background: linear-gradient(90deg, #ec5a21 10%, #f4d571 90%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 12px 0;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 12px rgba(244, 213, 113, 0.8);
+        }
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 1.6em;
+            color: #ec5a21;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        .close-btn:hover {
+            color: #e7564e;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 600px) {
+            .content {
+                flex-direction: column;
+                align-items: center;
+            }
+            .custom-audio {
+                width: 98%;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-gradient-to-br from-primary/90 via-secondary/90 to-primary/80 bg-gradient-animated font-sans">
+    <!-- 装饰性粒子背景 -->
+    <div id="particle-container" class="fixed inset-0 w-full h-full pointer-events-none z-0"></div>
+    
+    <!-- 登录页面（默认显示） -->
+    <div id="login-page" class="relative min-h-screen flex flex-col">
+        <!-- 顶部导航 -->
+        <header class="w-full p-4 md:p-6 flex justify-between items-center z-10">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-home text-white text-2xl md:text-3xl drop-shadow-lg"></i>
+                <h1 class="text-white text-xl md:text-2xl font-bold text-shadow">宝贝回家网</h1>
+            </div>
+            <nav>
+                <a href="#" class="text-white hover:text-purple-100 transition-colors duration-300 px-3 py-2 rounded-md text-sm md:text-base">首页</a>
+                <a href="#" class="text-white hover:text-purple-100 transition-colors duration-300 px-3 py-2 rounded-md text-sm md:text-base">寻亲信息</a>
+                <a href="#" class="text-white hover:text-purple-100 transition-colors duration-300 px-3 py-2 rounded-md text-sm md:text-base">帮助中心</a>
+            </nav>
+        </header>
+        
+        <!-- 登录窗口 - 居中显示 -->
+        <main class="flex-1 flex items-center justify-center px-4 py-8 z-10">
+            <div class="w-full max-w-md">
+                <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/20 shadow-2xl animate-[float_6s_ease-in-out_infinite]">
+                    <!-- 登录窗口标题 -->
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary mb-4 shadow-lg">
+                            <i class="fa fa-heart text-white text-2xl"></i>
+                        </div>
+                        <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-white text-shadow">账号登录</h2>
+                        <p class="text-white/70 mt-2">请输入您的账号信息</p>
+                    </div>
+                    
+                    <!-- 登录表单 -->
+                    <form id="login-form" class="space-y-5">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                <i class="fa fa-user text-white/70"></i>
+                            </div>
+                            <input type="text" id="username" 
+                                class="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300"
+                                placeholder="用户名或手机号" required>
+                            <div id="username-error" class="hidden text-red-300 text-sm mt-1">请输入正确的用户名</div>
+                        </div>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                <i class="fa fa-lock text-white/70"></i>
+                            </div>
+                            <input type="password" id="password" 
+                                class="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300"
+                                placeholder="请输入密码" required>
+                            <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 flex items-center pr-4 text-white/70 hover:text-white transition-colors">
+                                <i class="fa fa-eye-slash"></i>
+                            </button>
+                            <div id="password-error" class="hidden text-red-300 text-sm mt-1">密码错误，请重试</div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" class="rounded bg-white/10 border-white/30 text-primary focus:ring-primary">
+                                <span class="text-white/80 text-sm">记住我</span>
+                            </label>
+                            <a href="#" class="text-white/80 hover:text-white text-sm transition-colors">忘记密码？</a>
+                        </div>
+                        
+                        <button type="submit" 
+                            class="w-full py-3 px-4 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold shadow-lg hover:shadow-primary/30 hover:from-primary/90 hover:to-secondary/90 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 relative overflow-hidden group">
+                            <span class="relative z-10">登录账号</span>
+                            <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-500"></span>
+                        </button>
+                    </form>
+                    
+                    <!-- 注册提示 -->
+                    <div class="mt-6 text-center">
+                        <p class="text-white/70 text-sm">还没有账号？ 
+                            <a href="#" class="text-white font-medium hover:text-purple-100 transition-colors">立即注册</a>
+                        </p>
+                    </div>
+                    
+                    <!-- 其他登录方式 -->
+                    <div class="mt-8">
+                        <div class="flex items-center justify-center space-x-2 mb-4">
+                            <div class="h-px bg-white/30 flex-1"></div>
+                            <span class="text-white/60 text-sm">其他登录方式</span>
+                            <div class="h-px bg-white/30 flex-1"></div>
+                        </div>
+                        
+                        <div class="flex justify-center space-x-4">
+                            <button class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                                <i class="fa fa-weixin text-xl"></i>
+                            </button>
+                            <button class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                                <i class="fa fa-qq text-xl"></i>
+                            </button>
+                            <button class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+                                <i class="fa fa-phone text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- 页脚 -->
+        <footer class="w-full p-4 text-center text-white/60 text-sm z-10">
+            <p>宝贝回家寻子网 &copy; 2023 - 帮助失踪儿童回家</p>
+            <p class="mt-1">全国免费寻亲热线：400-0400-110</p>
+        </footer>
+    </div>
+    
+    <!-- 用户页面（默认隐藏） -->
+    <div id="user-page" class="hidden relative min-h-screen flex flex-col">
+        <!-- 顶部导航 -->
+        <header class="w-full p-4 md:p-6 flex justify-between items-center z-10 bg-white/10 backdrop-blur-xl">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-home text-white text-2xl md:text-3xl drop-shadow-lg"></i>
+                <h1 class="text-white text-xl md:text-2xl font-bold text-shadow">宝贝回家网</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button id="notification-btn" class="text-white hover:text-purple-100 transition-colors p-2 rounded-full hover:bg-white/20">
+                        <i class="fa fa-bell text-xl"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full"></span>
+                    </button>
+                </div>
+                
+                <div class="flex items-center space-x-2 cursor-pointer" id="user-menu-btn">
+                    <img src="555.png" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-white">
+                    <span class="text-white hidden md:inline">启涵爸爸</span>
+                    <i class="fa fa-angle-down text-white/70"></i>
+                </div>
+                
+                <button id="logout-btn" class="text-white hover:text-purple-100 transition-colors p-2 rounded-full hover:bg-white/20">
+                    <i class="fa fa-sign-out text-xl"></i>
+                </button>
+            </div>
+        </header>
+        
+        <!-- 主内容区 -->
+        <main class="flex-1 p-4 md:p-8 z-10">
+            <!-- 欢迎消息 -->
+            <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 mb-8 border border-white/20 shadow-xl">
+                <h2 class="text-[clamp(1.2rem,2vw,1.8rem)] font-bold text-white text-shadow">欢迎回来，启涵家长</h2>
+                <p class="text-white/80 mt-2">我们一直在努力帮助您寻找失踪的孩子，以下是最新的寻亲信息和进展</p>
+                
+                <div class="mt-4 flex flex-wrap gap-4">
+                    <div class="bg-white/10 rounded-xl p-4 flex-1 min-w-[200px]">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-primary/30 flex items-center justify-center mr-3">
+                                <i class="fa fa-search text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm">寻亲时长</p>
+                                <p class="text-white font-bold text-xl">78 天</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/10 rounded-xl p-4 flex-1 min-w-[200px]">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-secondary/30 flex items-center justify-center mr-3">
+                                <i class="fa fa-eye text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm">信息浏览</p>
+                                <p class="text-white font-bold text-xl">248 次</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/10 rounded-xl p-4 flex-1 min-w-[200px]">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-green-500/30 flex items-center justify-center mr-3">
+                                <i class="fa fa-comments text-white"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm">线索提供</p>
+                                <p class="text-white font-bold text-xl">12 条</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 失踪儿童信息 -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- 儿童照片和基本信息 -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl h-full">
+                        <h3 class="text-xl font-bold text-white mb-4">失踪儿童信息</h3>
+                        
+                        <div class="text-center mb-6">
+                            <img src="帅男.jpg" 
+                                 alt="失踪儿童照片" 
+                                 class="w-full max-w-xs mx-auto rounded-xl shadow-lg border-4 border-white/30">
+                            <p class="mt-2 text-white font-medium">吴启涵</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">失踪日期</span>
+                                <span class="text-white font-medium">2025年8月25日</span>
+                            </div>
+                            <div class="h-px bg-white/10"></div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">失踪地点</span>
+                                <span class="text-white font-medium">长春宽城区</span>
+                            </div>
+                            <div class="h-px bg-white/10"></div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">性别</span>
+                                <span class="text-white font-medium">男</span>
+                            </div>
+                            <div class="h-px bg-white/10"></div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">身高</span>
+                                <span class="text-white font-medium">168cm</span>
+                            </div>
+                            <div class="h-px bg-white/10"></div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">特征</span>
+                                <span class="text-white font-medium">看起来呆呆的，天生爱笑</span>
+                            </div>
+                        </div>
+                        
+                        <button class="mt-6 w-full py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors">
+                            <i class="fa fa-pencil mr-2"></i>编辑信息
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 寻亲进展和详细信息 -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl h-full">
+                        <h3 class="text-xl font-bold text-white mb-4">寻亲进展</h3>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div class="bg-white/5 rounded-xl p-4 border-l-4 border-primary">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-white font-medium">2025年8月30日</p>
+                                        <p class="text-white/80 mt-1">志愿者在河北省发现一名疑似儿童，已联系当地警方进行DNA比对</p>
+                                    </div>
+                                    <span class="bg-primary/20 text-white text-xs px-2 py-1 rounded-full">处理中</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/5 rounded-xl p-4 border-l-4 border-yellow-400">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-white font-medium">2025年9月3日</p>
+                                        <p class="text-white/80 mt-1">收到3条新线索，已分派志愿者核实情况</p>
+                                    </div>
+                                    <span class="bg-yellow-400/20 text-white text-xs px-2 py-1 rounded-full">核实中</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/5 rounded-xl p-4 border-l-4 border-green-400">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-white font-medium">2025年9月5日</p>
+                                        <p class="text-white/80 mt-1">寻亲信息已在全国200个城市的救助站发布</p>
+                                    </div>
+                                    <span class="bg-green-400/20 text-white text-xs px-2 py-1 rounded-full">已完成</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold text-white mb-4">详细信息</h3>
+                        
+                        <div class="space-y-3 text-white/90">
+                            <p><span class="text-white font-medium">失踪经过：</span>2025年8月25日下午，在长春吉林建筑科技学院与父亲走散，当时穿着白色上衣和黑色长裤，脚穿白色运动鞋。</p>
+                            
+                            <p><span class="text-white font-medium">身体特征：</span>身高约168cm，体型偏瘦，长得像无畏契约的尚博勒，失踪时手里还握着新买的vivoX200。</p>
+                            
+                            <p><span class="text-white font-medium">语言能力：</span>会说河南方言，能说出父母姓名和家庭住址，知道自己的生日。</p>
+                            
+                            <p><span class="text-white font-medium">特殊技能：</span>会玩王者荣耀，绝活：白起，吕布。</p>
+                        </div>
+                        
+                        <div class="mt-6 flex gap-3">
+                            <button class="flex-1 py-2 bg-secondary text-white rounded-xl hover:bg-secondary/90 transition-colors">
+                                <i class="fa fa-plus-circle mr-2"></i>添加线索
+                            </button>
+                            <button class="flex-1 py-2 bg-white/20 text-white rounded-xl hover:bg-white/30 transition-colors">
+                                <i class="fa fa-share-alt mr-2"></i>分享信息
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 相关案例和帮助资源 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 相关成功案例 -->
+                <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                        <i class="fa fa-lightbulb-o mr-2 text-yellow-400"></i>相关成功案例
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer">
+                            <div class="flex gap-4">
+                                <img src="222.png" 
+                                     alt="成功案例照片" 
+                                     class="w-20 h-20 rounded-lg object-cover">
+                                <div>
+                                    <p class="text-white font-medium">熊小比 - 失踪1天后找到</p>
+                                    <p class="text-white/70 text-sm mt-1">通过监控录像追踪发现自己走回家，成功找回</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer">
+                            <div class="flex gap-4">
+                                <img src="333.png" 
+                                     alt="成功案例照片" 
+                                     class="w-20 h-20 rounded-lg object-cover">
+                                <div>
+                                    <p class="text-white font-medium">小臭鼠 - 失踪4小时后找到</p>
+                                    <p class="text-white/70 text-sm mt-1">晚自习没上，跑去网吧打瓦</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer">
+                            <div class="flex gap-4">
+                                <img src="444.png" 
+                                     alt="成功案例照片" 
+                                     class="w-20 h-20 rounded-lg object-cover">
+                                <div>
+                                    <p class="text-white font-medium">惨猫 - 失踪6小时后找到</p>
+                                    <p class="text-white/70 text-sm mt-1">在厕所窜稀昏厥被保洁大妈发现</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="mt-4 w-full py-2 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors">
+                        查看更多成功案例
+                    </button>
+                </div>
+                
+                <!-- 帮助资源 -->
+                <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                        <i class="fa fa-hands-helping mr-2 text-green-400"></i>帮助资源
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <a href="#" class="block bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center mr-3">
+                                        <i class="fa fa-file-text text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium">失踪小逼报案指南</p>
+                                        <p class="text-white/70 text-sm mt-0.5">了解如何有效报案和提供信息</p>
+                                    </div>
+                                </div>
+                                <i class="fa fa-angle-right text-white/50"></i>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="block bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-purple-500/30 flex items-center justify-center mr-3">
+                                        <i class="fa fa-users text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium">苦力招募</p>
+                                        <p class="text-white/70 text-sm mt-0.5">加入我们的怨种团队</p>
+                                    </div>
+                                </div>
+                                <i class="fa fa-angle-right text-white/50"></i>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="block bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-yellow-500/30 flex items-center justify-center mr-3">
+                                        <i class="fa fa-phone text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium">紧急联系方式（打不通的）</p>
+                                        <p class="text-white/70 text-sm mt-0.5">寻亲紧急联系人和机构（同上）</p>
+                                    </div>
+                                </div>
+                                <i class="fa fa-angle-right text-white/50"></i>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="block bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-full bg-green-500/30 flex items-center justify-center mr-3">
+                                        <i class="fa fa-question-circle text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium">心理辅导服务</p>
+                                        <p class="text-white/70 text-sm mt-0.5">为失踪小逼家庭提供心理支持</p>
+                                    </div>
+                                </div>
+                                <i class="fa fa-angle-right text-white/50"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- 页脚 -->
+        <footer class="w-full p-4 text-center text-white/60 text-sm z-10 bg-white/10 backdrop-blur-xl">
+            <p>宝贝回家寻子网 &copy; 2023 - 帮助失踪小逼回家</p>
+            <p class="mt-1">全国免费寻亲热线：400-0400-110</p>
+        </footer>
+    </div>
+    <!-- 音乐播放器 -->
+    <div class="music-player" id="music-player">
+        <div class="music-cover" id="music-cover">
+            <img src="https://picsum.photos/id/1025/100/100" alt="音乐封面">
+        </div>
+        <div class="player-content">
+            <div class="music-info">
+                <div class="music-title" id="music-title">小星星</div>
+                <div class="music-artist" id="music-artist">儿童歌曲</div>
+            </div>
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="music-time">
+                <span id="current-time">0:00</span>
+                <span id="total-time">0:00</span>
+            </div>
+        </div>
+        <div class="music-controls">
+            <button class="control-btn" id="prev-btn">
+                <i class="fa fa-step-backward"></i>
+            </button>
+            <button class="control-btn play-btn" id="play-btn">
+                <i class="fa fa-play"></i>
+            </button>
+            <button class="control-btn" id="next-btn">
+                <i class="fa fa-step-forward"></i>
+            </button>
+        </div>
+        <div class="minimize-btn" id="minimize-btn">
+            <i class="fa fa-chevron-down"></i>
+        </div>
+    </div>
+    
+    <!-- 音频元素 -->
+    <audio id="audio-player" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // 模拟用户数据库
+        const users = [
+            { username: '启涵我儿', password: '5201314', name: '启涵爸爸' },
+            { username: 'admin', password: 'admin123', name: '管理员' }
+        ];
+        
+        // DOM元素
+        const loginPage = document.getElementById('login-page');
+        const userPage = document.getElementById('user-page');
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const usernameError = document.getElementById('username-error');
+        const passwordError = document.getElementById('password-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+           // 音乐播放器元素
+        const audioPlayer = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+        const musicCover = document.getElementById('music-cover');
+        const musicPlayer = document.getElementById('music-player');
+        const minimizeBtn = document.getElementById('minimize-btn');
+        
+        // 播放列表
+        const playlist = [
+            {
+                title: "鲜花",
+                artist: "摇滚",
+                src: "鲜花.mp3",
+                cover: "https://picsum.photos/id/1025/100/100"
+            },
+            {
+                title: "缸",
+                artist: "摇滚",
+                src: "缸.mp3",
+                cover: "https://picsum.photos/id/1024/100/100"
+            },
+            {
+                title: "老张",
+                artist: "摇滚",
+                src: "老张.mp3",
+                cover: "https://picsum.photos/id/1023/100/100"
+            }
+        ];
+        
+        let currentSongIndex = 0;
+        
+        // 检查本地存储中的登录状态
+        if (localStorage.getItem('loggedIn') === 'true') {
+            showUserPage();
+        }
+        
+        // 密码显示/隐藏切换
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // 切换图标
+            const icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+        
+        // 登录表单提交
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            // 验证用户
+            const user = users.find(u => u.username === username);
+            
+            // 隐藏之前的错误消息
+            usernameError.classList.add('hidden');
+            passwordError.classList.add('hidden');
+            
+            if (!user) {
+                // 用户名不存在
+                usernameError.classList.remove('hidden');
+                shakeElement(usernameInput);
+                return;
+            }
+            
+            if (user.password !== password) {
+                // 密码错误
+                passwordError.classList.remove('hidden');
+                shakeElement(passwordInput);
+                return;
+            }
+            
+            // 登录成功
+            localStorage.setItem('loggedIn', 'true');
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            
+            // 显示成功动画并切换到用户页面
+            loginForm.reset();
+            showSuccessAnimation();
+            
+            setTimeout(() => {
+                showUserPage();
+            }, 1000);
+        });
+        
+        // 登出功能
+        logoutBtn.addEventListener('click', function() {
+            localStorage.setItem('loggedIn', 'false');
+            localStorage.removeItem('currentUser');
+            
+            // 显示登出动画
+            showLogoutAnimation();
+            
+            setTimeout(() => {
+                showLoginPage();
+            }, 800);
+        });
+        
+        // 显示用户页面
+        function showUserPage() {
+            loginPage.classList.add('hidden');
+            userPage.classList.remove('hidden');
+            
+            // 添加入场动画
+            userPage.classList.add('animate-[fadeIn_0.5s_ease-out]');
+            
+            // 获取当前用户信息并更新页面
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (user) {
+                document.querySelector('#user-menu-btn span').textContent = user.name;
+            }
+        }
+        
+        // 显示登录页面
+        function showLoginPage() {
+            userPage.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            
+            // 添加入场动画
+            loginPage.querySelector('main > div').classList.add('animate-[fadeIn_0.5s_ease-out]');
+        }
+        
+        // 输入框错误抖动动画
+        function shakeElement(element) {
+            element.classList.add('animate-[shake_0.5s_ease-in-out]');
+            setTimeout(() => {
+                element.classList.remove('animate-[shake_0.5s_ease-in-out]');
+            }, 500);
+        }
+        
+        // 登录成功动画
+        function showSuccessAnimation() {
+            const loginCard = document.querySelector('#login-page main > div > div');
+            loginCard.classList.add('bg-green-500/20', 'border-green-500/30');
+            
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fa fa-check mr-2"></i>登录成功';
+            submitBtn.classList.remove('from-primary', 'to-secondary');
+            submitBtn.classList.add('bg-green-500');
+        }
+        
+        // 登出动画
+        function showLogoutAnimation() {
+            const userContent = userPage.querySelector('main');
+            userContent.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+        }
+        
+        // 创建粒子背景
+        function createParticles() {
+            const container = document.getElementById('particle-container');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                
+                // 随机样式
+                const size = Math.random() * 6 + 2;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const delay = Math.random() * 5;
+                const duration = Math.random() * 20 + 10;
+                
+                particle.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    top: ${posY}%;
+                    left: ${posX}%;
+                    animation: float ${duration}s ease-in-out ${delay}s infinite;
+                    z-index: 0;
+                `;
+                
+                container.appendChild(particle);
+            }
+        }
+         // 音乐播放器功能
+        function togglePlay() {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playBtn.innerHTML = '<i class="fa fa-pause"></i>';
+                musicCover.classList.add('playing');
+            } else {
+                audioPlayer.pause();
+                playBtn.innerHTML = '<i class="fa fa-play"></i>';
+                musicCover.classList.remove('playing');
+            }
+        }
+        
+        function updateProgress(e) {
+            const { duration, currentTime } = e.srcElement;
+            const progressPercent = (currentTime / duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            
+            // 更新时间显示
+            currentTimeEl.textContent = formatTime(currentTime);
+            totalTimeEl.textContent = formatTime(duration);
+        }
+        
+        function setProgress(e) {
+            const width = this.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audioPlayer.duration;
+            
+            audioPlayer.currentTime = (clickX / width) * duration;
+        }
+        
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' + secs : secs}`;
+        }
+        
+        function prevSong() {
+            currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
+            loadSong(playlist[currentSongIndex]);
+            audioPlayer.play();
+            updatePlayButton();
+        }
+        
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % playlist.length;
+            loadSong(playlist[currentSongIndex]);
+            audioPlayer.play();
+            updatePlayButton();
+        }
+        
+        function loadSong(song) {
+            document.getElementById('music-title').textContent = song.title;
+            document.getElementById('music-artist').textContent = song.artist;
+            audioPlayer.src = song.src;
+            musicCover.querySelector('img').src = song.cover;
+            musicCover.classList.add('playing');
+        }
+        
+        function updatePlayButton() {
+            playBtn.innerHTML = '<i class="fa fa-pause"></i>';
+        }
+        
+        function toggleMinimize() {
+            musicPlayer.classList.toggle('minimized');
+            const icon = minimizeBtn.querySelector('i');
+            if (musicPlayer.classList.contains('minimized')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+        
+        // 事件监听器 - 音乐播放器
+        playBtn.addEventListener('click', togglePlay);
+        audioPlayer.addEventListener('timeupdate', updateProgress);
+        progressContainer.addEventListener('click', setProgress);
+        prevBtn.addEventListener('click', prevSong);
+        nextBtn.addEventListener('click', nextSong);
+        audioPlayer.addEventListener('ended', nextSong);
+        minimizeBtn.addEventListener('click', toggleMinimize);
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            createParticles();
+            loadSong(playlist[currentSongIndex]);
+            
+            // 音频元数据加载完成后更新总时长
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                totalTimeEl.textContent = formatTime(audioPlayer.duration);
+            });
+        });
+        
+        
+        // 添加粒子动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 页面加载完成后创建粒子背景
+        window.addEventListener('load', createParticles);
+    </script>
+</body>
+</html>
